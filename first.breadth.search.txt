@@ -1,0 +1,244 @@
+package com.example.algorithm.djkstra.Dijkstra;
+
+import android.util.Log;
+
+import java.util.ArrayList;
+
+/**
+ * Created by hassan on 12/17/2015.
+ */
+public class Firstsearch {
+
+
+
+
+    
+
+
+
+    int numberofsteps;
+    int i=0;
+    private int[][] map;//the entire map of the game
+    public int[][] paths=null;//all the possible paths
+   // int scale=SquareWorld.scale;
+    private ArrayList<Point> Nodes;//in order to find the next path for children's of the parent and the children's of the children and so on...
+    int j;//should be removed in the end
+    private int targetrow,targetcol;
+    private int destinationrow,destinationcol;
+  //  ArrayList<Square> points;//this will represent the final path of the enemy
+    double d;
+    double delta;
+    //map ,each square if not equal 1 could be included in path
+    public Firstsearch(int[][] map, int startcol, int startrow, int destinationcol, int destinationrow){
+        this.map=map;
+        paths=new int[map.length][map[0].length];
+
+        Nodes=new ArrayList<Point>();
+
+        this.targetcol=startcol;
+        this.targetrow=startrow;
+        this.destinationcol=destinationcol;
+        this.destinationrow=destinationrow;
+     //   points=new ArrayList<Square>();
+        possiblepaths();
+
+    }
+
+
+//    public ArrayList<Square> getPoints() {
+//        return points;
+//    }
+//
+//
+//    public void setPoints(ArrayList<Square> points) {
+//        this.points = points;
+//    }
+
+    public int getNumberofsteps(){
+        return numberofsteps;
+    }
+
+    private void possiblepaths(){
+
+        //p.
+        d=System.currentTimeMillis();
+
+        j=0;
+
+        i=0;
+        paths=map;
+        paths[targetcol][targetrow]=1;
+        Nodes.add(new Point(targetcol,targetrow));
+        //////////////////////////////////////////////////////
+        //loop through all the Squares in the Nodes
+        //note that at first there will be only one Square in the Nodes
+        //but when we check the left,right,top,bottom Square of this square
+        //if there is no tower or wall  than we add them to nodes and therefore the size of Nodes is no longer 1
+        //and we than we loop through the added Squares into nodes,if there is a path ,same as we did for the  first Square,we added it to the Nodes
+        //and therefore we will check these added squares and so on....
+        //until either the target row and col is found or there is no squares left to add
+        while(i<Nodes.size() ){
+            j++;
+
+            int col=Nodes.get(i).x,row=Nodes.get(i).y;
+            //		if(col==startcol && row==startrow){
+            //		pathfound=true;//path is found
+            //	break;
+            //	}
+            if(row>=0 && col>=0 && row<map[0].length && col<map.length  ){
+                if(col+1<map.length && map[col+1][row]!=1){//make sure that is square equal zero ,since if not means that there is a tower
+                    //and for that we can not add it to the possible paths
+
+                    if( paths[col+1][row]==0){//make  sure that it is not already included in the possible paths or nodes
+                        paths[col+1][row]=calculateID(col+1,row);//calculate it's number that represent the number of steps to reach it form the start position of the path
+                        Nodes.add(new Point(col+1,row));
+                    if(End(col + 1, row)){
+                        break;
+                    }
+                    }
+                }
+
+                if(row+1<map[0].length && map[col][row+1]!=1){
+
+                    if( paths[col][row+1]==0){
+                        paths[col][row+1]=calculateID(col, row+1);
+                        Nodes.add(new Point(col, row+1));
+
+                        if(End(col, row+1)){
+                            break;
+                        }
+                    }
+
+                }
+
+                if(row-1>=0 && map[col][row-1]!=1){
+                    if( paths[col][row-1]==0){
+                        paths[col][row-1]=calculateID(col,row-1);
+
+                        Nodes.add(new Point(col,row-1));
+                        if(End(col, row-1)){
+                            break;
+                        }
+                    }
+                }
+
+                if(col-1>=0 && map[col-1][row]!=1){
+                    if( paths[col-1][row]==0){//make  sure that it is not already included in the possible paths or nodes
+                        paths[col-1][row]=calculateID(col-1,row);
+
+                        Nodes.add(new Point(col-1,row));
+                        if(End(col-1, row)){
+                            break;
+                        }
+                    }
+                }
+
+            }
+            Log.i("i is", " j is" + j + " i is" + i+ " and size is " + Nodes.size());
+            //c.drawText(" i is " + i + " Nodes size is" + Nodes.size() + " col is " + " row is " +  col + "  " + row , 300, 300,new Paint());
+            i++;
+
+        }//end while
+
+
+        delta=System.currentTimeMillis()-d;
+
+        numberofsteps=Nodes.size();
+
+
+    }
+
+    public int[][] getmap(){
+        return paths;
+    }
+    private  int calculateID(int col,int row){
+        int ID=1;
+
+        if(col-1>=0 && paths[col-1][row]>0)//not equal to zero ,means that this is for sure not it's parent
+            ID=paths[col-1][row]+1;
+        else if(row-1>=0  && paths[col][row-1]>0){
+            ID=paths[col][row-1]+1;
+        }else if(row+1<paths[0].length  && paths[col][row+1]>0){
+            ID=paths[col][row+1]+1;
+        }else if(col+1<paths.length && paths[col+1][row]>0){
+            ID=paths[col+1][row]+1;
+        }
+
+        return ID;
+    }
+
+
+    public int getNumberOfsteps(){
+        return numberofsteps;
+    }
+
+
+
+    private boolean End(int destinationcol,int destinationrow){
+        if(destinationcol==this.destinationcol && destinationrow==this.destinationrow){
+            return true;
+        }else return false;
+    };
+
+
+
+//    public void findpath(float startx,float starty,float speedx,float speedy){
+//        points=new ArrayList<Square>();
+//
+//        int col=(int) startx/SquareWorld.scale;
+//        int row=(int) starty/SquareWorld.scale;
+//
+//        double m=System.currentTimeMillis();
+//        ////////////////////////////////////////////
+//        //check whether to add x and y position of the object or not
+//
+//        //	points.add(new Square(startx/SquareWorld.scale,starty/SquareWorld.scale));//this point made be deleted or not depending on the path
+//
+//        ///////////////////////////////////////
+//
+//        points.add(new Square(col+0.5f,row+0.5f));
+//        while(true){
+//            //get the last col and row of the last square added to the path
+//            //we move through this loop square by square until we reach the start position
+//
+//            if(col==targetcol && row==targetrow){//break the loop once reached the start position
+//                break;
+//            }
+//            //////////////////////////
+//            //make sure that the row and col are  in the range of the map
+//
+//
+//            if(col+1<map.length && paths[col+1][row]==paths[col][row]-1){
+//
+//                points.add(new Square(col+1+0.5f,row+0.5f));
+//                col++;continue;
+//            }else if(row-1>=0 && paths[col][row-1]==paths[col][row]-1){
+//                //add this square to the path
+//                points.add(new Square(col+0.5f,row-1+0.5f));
+//                row--;continue;
+//            }
+//            else if(col-1>=0 && paths[col-1][row]==paths[col][row]-1){
+//
+//                points.add(new Square(col-1+0.5f,row+0.5f));
+//                col--;continue;
+//            }else if(row+1<map[0].length && paths[col][row+1]==paths[col][row]-1){
+//
+//                points.add(new Square(col+0.5f,row+1+0.5f));
+//                row++;
+//                continue;
+//            }
+//            m=System.currentTimeMillis()-m;
+//            Log.i("time for fill the matrix is", delta + "  find path method" + j + " i is" + i + " and size is " + Nodes.size());
+//            points=null;
+//            break;//means no path found
+//
+//            //Log.i("  ", "delta time for finding for one enemy is" + m + "  start col and row " + paths[startcol][startrow] + " current col and row" + col + "row" + row);
+//        }
+
+
+
+//    }
+
+
+
+}
